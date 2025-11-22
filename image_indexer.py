@@ -29,10 +29,14 @@ class ImageIndexer:
         # 加载CLIP模型
         print("正在加载CLIP模型...")
         # 使用 use_safetensors=True 避免 torch.load 安全限制
-        self.model = CLIPModel.from_pretrained(
-            model_name, 
-            use_safetensors=True
-        ).to(self.device)
+        try:
+            self.model = CLIPModel.from_pretrained(
+                model_name,
+                use_safetensors=True
+            ).to(self.device)
+        except Exception:
+            # 如果 safetensors 不可用，尝试普通加载（需要 torch >= 2.6）
+            self.model = CLIPModel.from_pretrained(model_name).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(model_name)
         self.model.eval()
         
