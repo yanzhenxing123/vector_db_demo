@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片搜索系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            min-height: 200px;
+        }
+
+        .results-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .results-count {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .result-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .result-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #e0e0e0;
+        }
+
+        .result-info {
+            padding: 15px;
+        }
+
+        .result-path {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .result-similarity {
+            display: inline-block;
+            padding: 5px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 图片搜索系统</h1>
+            <p>使用自然语言搜索你的图片库</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="输入搜索关键词，例如：一只猫、红色的汽车、美丽的风景..."
+                    autocomplete="off"
+                >
+                <button class="search-btn" id="searchBtn" onclick="performSearch()">
+                    搜索
+                </button>
+            </div>
+            <div class="stats" id="stats">
+                加载中...
+            </div>
+        </div>
+
+        <div class="results-container" id="resultsContainer" style="display: none;">
+            <div class="results-header">
+                <h2>搜索结果</h2>
+                <div class="results-count" id="resultsCount"></div>
+            </div>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时获取统计信息
+        window.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            
+            // 支持回车键搜索
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        });
+
+        // 加载统计信息
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('stats').textContent = `数据库中共有 ${data.total_images} 张已索引的图片`;
+                } else {
+                    document.getElementById('stats').textContent = '无法获取统计信息';
+                }
+            } catch (error) {
+                document.getElementById('stats').textContent = '无法连接到服务器';
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // 执行搜索
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCount = document.getElementById('resultsCount');
+
+            if (!query) {
+                alert('请输入搜索关键词');
+                return;
+            }
+
+            // 禁用按钮，显示加载状态
+            searchBtn.disabled = true;
+            searchBtn.textContent = '搜索中...';
+            resultsContainer.style.display = 'block';
+            resultsContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>正在搜索 "${query}"...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        top_k: 20
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    resultsContent.innerHTML = `
+                        <div class="error">
+                            <strong>搜索失败：</strong>${data.error || '未知错误'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsContent.innerHTML = `
+                    <div class="error">
+                        <strong>网络错误：</strong>${error.message}
+                    </div>
+                `;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = '搜索';
+            }
+        }
+
+        // 显示搜索结果
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCount = document.getElementById('resultsCount');
+
+            if (!data.results || data.results.length === 0) {
+                resultsContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>未找到相关图片</h3>
+                        <p>尝试使用其他关键词搜索</p>
+                    </div>
+                `;
+                resultsCount.textContent = `未找到与 "${data.query}" 相关的图片`;
+                return;
+            }
+
+            resultsCount.textContent = `找到 ${data.results.length} 张与 "${data.query}" 相关的图片`;
+
+            let html = '<div class="results-grid">';
+            data.results.forEach((result, index) => {
+                const similarityPercent = (result.similarity * 100).toFixed(1);
+                html += `
+                    <div class="result-item" onclick="openImage('${result.image_url}')">
+                        <img 
+                            src="${result.image_url}" 
+                            alt="${result.image_id}"
+                            class="result-image"
+                            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3E图片加载失败%3C/text%3E%3C/svg%3E'"
+                        >
+                        <div class="result-info">
+                            <div class="result-path" title="${result.image_path}">
+                                ${result.image_path.length > 30 ? result.image_path.substring(0, 30) + '...' : result.image_path}
+                            </div>
+                            <div class="result-similarity">
+                                相似度: ${similarityPercent}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            resultsContent.innerHTML = html;
+        }
+
+        // 打开图片（在新窗口）
+        function openImage(imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
+
