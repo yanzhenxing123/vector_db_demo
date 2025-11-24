@@ -105,8 +105,8 @@ python main.py interactive
 # 1. 索引图片
 python main.py index --image_dir ./my_images
 
-# 2. 导出 CIFAR-100 的 10,000 张图片（可选）
-python export_cifar_images.py --dataset_dir ./cifar-100-python --output_dir ./cifar_images --count 10000
+# 2. pass
+
 
 # 3. 启动Web界面（推荐）
 python app.py

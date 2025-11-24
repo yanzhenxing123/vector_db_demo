@@ -37,6 +37,7 @@ class ImageSearcher:
             self.model = CLIPModel.from_pretrained(model_name).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(model_name)
         self.model.eval()
+
         
         # 连接Chroma向量数据库（使用PersistentClient确保持久化）
         self.client = chromadb.PersistentClient(path=persist_directory)
