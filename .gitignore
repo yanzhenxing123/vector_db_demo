@@ -234,3 +234,5 @@ clip-vit-base-patch32.zip
 openai
 
 *.vsix
+
+.DS_Store
